@@ -1,0 +1,22 @@
+{
+  "name": "twitch-category-to-discord-webhook-notifier",
+  "version": "1.0.0",
+  "description": "A service that monitors Twitch streams by category and sends Discord notifications when new streams go live",
+  "scripts": {
+    "build": "cd lambda && npm run build",
+    "deploy": "npm run build && cd cdk && npm run deploy",
+    "destroy": "cd cdk && npm run destroy",
+    "serve": "python serve.py",
+    "serve:ps": "powershell ./serve.ps1"
+  },
+  "keywords": [
+    "twitch",
+    "discord",
+    "notifications",
+    "aws",
+    "lambda",
+    "cdk"
+  ],
+  "author": "",
+  "license": "MIT"
+}

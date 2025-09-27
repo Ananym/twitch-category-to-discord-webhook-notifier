@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Twitch Category Notifier</title>
+    <script src="https://unpkg.com/htmx.org@1.9.6"></script>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>Twitch Category to Discord Webhook Notifier</h1>
+        <div
+          id="status-info"
+          class="status-subtitle"
+          hx-get="https://3vnuov7klmki7q5faqknhh7jem0corgn.lambda-url.eu-west-2.on.aws/status"
+          hx-trigger="load"
+        >
+          Loading status...
+        </div>
+      </header>
+
+      <!-- Webhook Configuration Manager -->
+      <section class="webhook-manager">
+        <!-- <h2>Manage Your Notifications</h2> -->
+
+        <div class="webhook-input-section">
+          <label for="webhook_url">Enter your Discord Webhook URL:</label>
+          <div class="input-with-button">
+            <input
+              id="webhook_url"
+              name="webhook_url"
+              type="url"
+              placeholder="https://discord.com/api/webhooks/..."
+              autocomplete="off"
+            />
+            <button
+              id="load-btn"
+              class="btn-primary"
+              hx-get="https://3vnuov7klmki7q5faqknhh7jem0corgn.lambda-url.eu-west-2.on.aws/notifications"
+              hx-target="#all-notifications"
+              hx-include="#webhook_url"
+              hx-trigger="click"
+              hx-on::before-request="document.getElementById('all-notifications-section').style.display = 'block'"
+            >
+              Load
+            </button>
+          </div>
+          <small>Discord Server Settings -> Integrations -> Webhooks</small>
+        </div>
+
+        <div id="webhook-configs" class="webhook-configs-container">
+          <div class="load-prompt">
+            Click "Load" to see and manage your configurations for this webhook.
+          </div>
+        </div>
+      </section>
+
+      <!-- All Notifications Overview -->
+      <section
+        class="all-notifications"
+        id="all-notifications-section"
+        style="display: none"
+      >
+        <h2>All Active Notifications</h2>
+        <div id="all-notifications">
+          Loading all notifications...
+        </div>
+      </section>
+    </div>
+
+    <script>
+      // Load saved webhook URL from localStorage
+      document.addEventListener("DOMContentLoaded", function () {
+        const savedWebhookUrl = localStorage.getItem("webhook_url");
+        if (savedWebhookUrl) {
+          document.getElementById("webhook_url").value = savedWebhookUrl;
+          // Auto-trigger the Load button's HTMX request
+          htmx.trigger("#load-btn", "click");
+        }
+      });
+
+      // Save webhook URL to localStorage when changed
+      document
+        .getElementById("webhook_url")
+        .addEventListener("input", function (e) {
+          localStorage.setItem("webhook_url", e.target.value);
+        });
+
+      // Clear category selection when search term changes
+      // document.body.addEventListener("input", function (e) {
+      //   if (e.target.name === "search_term") {
+      //     // Find the category select element relative to this search input
+      //     const categorySelect = e.target
+      //       .closest(".category-search-container")
+      //       ?.querySelector("select[name='category']");
+
+      //     if (categorySelect) {
+      //       categorySelect.selectedIndex = -1; // Clear selection entirely
+      //     }
+      //   }
+      // });
+    </script>
+  </body>
+</html>
