@@ -14,14 +14,9 @@ export class DiscordService {
         },
         fields: [
           {
-            name: '👥 Viewers',
-            value: stream.viewer_count.toLocaleString(),
-            inline: true,
-          },
-          {
-            name: '🌐 Language',
-            value: stream.language.toUpperCase(),
-            inline: true,
+            name: '\u200B',
+            value: `${stream.viewer_count.toLocaleString()} ${stream.viewer_count === 1 ? 'viewer' : 'viewers'}${stream.tags && stream.tags.length > 0 ? ` | ${stream.tags.slice(0, 10).join(', ')}${stream.tags.length > 10 ? ` (+${stream.tags.length - 10} more)` : ''}` : ''}`,
+            inline: false,
           },
         ],
         timestamp: stream.started_at,

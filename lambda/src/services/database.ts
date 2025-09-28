@@ -17,10 +17,22 @@ export class DatabaseService {
   }
 
   async getNotificationConfigs(): Promise<NotificationConfig[]> {
+    console.log(`Scanning table: ${config.tables.notificationConfigs}`);
     const result = await dynamodb.send(new ScanCommand({
       TableName: config.tables.notificationConfigs,
     }));
-    return result.Items as NotificationConfig[] || [];
+
+    const items = result.Items as NotificationConfig[] || [];
+    console.log(`Scan returned ${items.length} items`);
+
+    if (items.length > 0) {
+      console.log('Raw scan results:');
+      items.forEach((item, index) => {
+        console.log(`  Item ${index + 1}:`, JSON.stringify(item, null, 2));
+      });
+    }
+
+    return items;
   }
 
   async getNotificationConfigsByWebhook(webhookUrl: string): Promise<NotificationConfig[]> {
@@ -55,13 +67,21 @@ export class DatabaseService {
     const configs = await this.getNotificationConfigs();
     const gameIds = new Set<string>();
 
-    configs.forEach(config => {
-      if (config.sk.startsWith('category#')) {
-        gameIds.add(config.sk.replace('category#', ''));
+    console.log(`Processing ${configs.length} configs in getUniqueGameIds()`);
+
+    configs.forEach((config, index) => {
+      console.log(`  Config ${index + 1}: sk="${config.sk}", game_id="${config.game_id}"`);
+      if (config.sk.startsWith('config#') && config.game_id) {
+        console.log(`    ✓ Adding game_id: ${config.game_id}`);
+        gameIds.add(config.game_id);
+      } else {
+        console.log(`    ✗ Skipping - doesn't match criteria`);
       }
     });
 
-    return Array.from(gameIds);
+    const result = Array.from(gameIds);
+    console.log(`Final unique game IDs: [${result.join(', ')}]`);
+    return result;
   }
 
   async saveDiscoveredStream(stream: DiscoveredStream): Promise<void> {
@@ -88,15 +108,20 @@ export class DatabaseService {
     const existing = configs.find(c => c.pk === pk && c.sk === sk);
 
     if (existing) {
+      const timestamp = new Date().toISOString();
+      console.log(`Updating notification success for ${pk}/${sk}: setting last_success to ${timestamp}, resetting failure_count to 0`);
+
       await dynamodb.send(new PutCommand({
         TableName: config.tables.notificationConfigs,
         Item: {
           ...existing,
-          last_success: new Date().toISOString(),
+          last_success: timestamp,
           failure_count: 0,
-          updated_at: new Date().toISOString(),
+          updated_at: timestamp,
         },
       }));
+    } else {
+      console.log(`Config not found for success update: ${pk}/${sk}`);
     }
   }
 

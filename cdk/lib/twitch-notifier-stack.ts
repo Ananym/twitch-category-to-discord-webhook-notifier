@@ -71,8 +71,8 @@ export class TwitchNotifierStack extends cdk.Stack {
 
 
     const streamCheckRule = new events.Rule(this, 'StreamCheckRule', {
-      schedule: events.Schedule.rate(Duration.minutes(15)),
-      description: 'Trigger stream checking every 15 minutes',
+      schedule: events.Schedule.rate(Duration.minutes(5)),
+      description: 'Trigger stream checking every 5 minutes',
     });
 
     streamCheckRule.addTarget(new targets.LambdaFunction(twitchNotifierLambda, {

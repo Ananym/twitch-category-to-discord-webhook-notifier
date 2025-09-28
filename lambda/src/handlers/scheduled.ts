@@ -12,11 +12,26 @@ const discord = new DiscordService();
 const status = new StatusService();
 
 export async function scheduledHandler(event: ScheduledEvent): Promise<void> {
-  console.log('Starting scheduled stream check...', event);
+  console.log('Starting scheduled stream check...', JSON.stringify(event, null, 2));
 
   try {
     await status.updateLastPollTime();
+
+    // Get all configs first for debugging
+    console.log('Fetching all notification configs from database...');
+    const allConfigs = await db.getNotificationConfigs();
+    console.log(`Total configs in database: ${allConfigs.length}`);
+
+    if (allConfigs.length > 0) {
+      console.log('Sample config structure:', JSON.stringify(allConfigs[0], null, 2));
+      console.log('All config pk/sk pairs:');
+      allConfigs.forEach((config, index) => {
+        console.log(`  ${index + 1}. pk: "${config.pk}", sk: "${config.sk}", game_id: "${config.game_id}", game_name: "${config.game_name}"`);
+      });
+    }
+
     const gameIds = await db.getUniqueGameIds();
+    console.log(`Extracted unique game IDs: [${gameIds.join(', ')}]`);
     console.log(`Checking ${gameIds.length} categories for new streams`);
 
     if (gameIds.length === 0) {
@@ -44,6 +59,15 @@ export async function scheduledHandler(event: ScheduledEvent): Promise<void> {
         const eligibleConfigs = [];
 
         for (const notificationConfig of configs) {
+          console.log(`Evaluating config for ${stream.user_name}:`, {
+            pk: notificationConfig.pk,
+            sk: notificationConfig.sk,
+            required_tags: notificationConfig.required_tags,
+            minimum_viewers: notificationConfig.minimum_viewers,
+            stream_tags: stream.tags,
+            stream_viewer_count: stream.viewer_count
+          });
+
           // Check minimum viewers threshold
           const minViewers = notificationConfig.minimum_viewers || 1;
           if (stream.viewer_count < minViewers) {
@@ -53,6 +77,8 @@ export async function scheduledHandler(event: ScheduledEvent): Promise<void> {
 
           // Check if stream matches required tags
           if (notificationConfig.required_tags && notificationConfig.required_tags.length > 0) {
+            console.log(`Checking required tags for ${stream.user_name}: required=[${notificationConfig.required_tags.join(', ')}], stream=[${stream.tags.join(', ')}]`);
+
             const hasAllRequiredTags = notificationConfig.required_tags.every(requiredTag =>
               stream.tags.some(streamTag => streamTag.toLowerCase() === requiredTag.toLowerCase())
             );
@@ -60,7 +86,11 @@ export async function scheduledHandler(event: ScheduledEvent): Promise<void> {
             if (!hasAllRequiredTags) {
               console.log(`Skipping notification for ${stream.user_name} - missing required tags: ${notificationConfig.required_tags.join(', ')}`);
               continue;
+            } else {
+              console.log(`✓ All required tags found for ${stream.user_name}`);
             }
+          } else {
+            console.log(`No required tags configured for ${stream.user_name} - proceeding`);
           }
 
           eligibleConfigs.push(notificationConfig);
@@ -85,7 +115,7 @@ export async function scheduledHandler(event: ScheduledEvent): Promise<void> {
               await discord.sendNotification(notificationConfig.webhook_url, stream);
               await db.updateNotificationSuccess(notificationConfig.pk, notificationConfig.sk);
               notificationsSent++;
-              console.log(`✓ Notification sent successfully for ${stream.user_name}`);
+              console.log(`✓ Notification sent successfully for ${stream.user_name} to webhook ${notificationConfig.pk}/${notificationConfig.sk} - updating last_success timestamp`);
             } catch (error) {
               console.error(`✗ Failed to send notification for ${stream.user_name}:`, error);
               await db.updateNotificationFailure(notificationConfig.pk, notificationConfig.sk);

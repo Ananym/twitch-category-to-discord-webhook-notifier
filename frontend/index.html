@@ -5,19 +5,46 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Twitch Category Notifier</title>
     <script src="https://unpkg.com/htmx.org@1.9.6"></script>
+    <script src="https://unpkg.com/choices.js@10.2.0/public/assets/scripts/choices.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/choices.js@10.2.0/public/assets/styles/choices.min.css"
+    />
     <link rel="stylesheet" href="style.css" />
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+    <base href="https://3vnuov7klmki7q5faqknhh7jem0corgn.lambda-url.eu-west-2.on.aws/" />
   </head>
   <body>
     <div class="container">
       <header>
-        <h1>Twitch Category to Discord Webhook Notifier</h1>
-        <div
-          id="status-info"
-          class="status-subtitle"
-          hx-get="https://3vnuov7klmki7q5faqknhh7jem0corgn.lambda-url.eu-west-2.on.aws/status"
-          hx-trigger="load"
-        >
-          Loading status...
+        <div class="header-content">
+          <div class="header-text">
+            <h1>
+              <span class="twitch-brand">Twitch Category</span>
+              <span class="title-neutral">to</span>
+              <span class="discord-brand">Discord Webhook</span>
+              <span class="title-neutral">Notifier</span>
+            </h1>
+            <div
+              id="status-info"
+              class="status-subtitle"
+              hx-get="/status"
+              hx-trigger="load"
+            >
+              Loading status...
+            </div>
+          </div>
+          <button
+            id="dark-mode-toggle"
+            class="dark-mode-toggle"
+            title="Toggle dark mode"
+          >
+            <i data-lucide="sun" class="light-icon"></i>
+            <i data-lucide="moon" class="dark-icon"></i>
+          </button>
         </div>
       </header>
 
@@ -38,22 +65,17 @@
             <button
               id="load-btn"
               class="btn-primary"
-              hx-get="https://3vnuov7klmki7q5faqknhh7jem0corgn.lambda-url.eu-west-2.on.aws/notifications"
+              hx-get="/notifications"
               hx-target="#all-notifications"
               hx-include="#webhook_url"
               hx-trigger="click"
               hx-on::before-request="document.getElementById('all-notifications-section').style.display = 'block'"
+              disabled
             >
               Load
             </button>
           </div>
           <small>Discord Server Settings -> Integrations -> Webhooks</small>
-        </div>
-
-        <div id="webhook-configs" class="webhook-configs-container">
-          <div class="load-prompt">
-            Click "Load" to see and manage your configurations for this webhook.
-          </div>
         </div>
       </section>
 
@@ -63,44 +85,172 @@
         id="all-notifications-section"
         style="display: none"
       >
-        <h2>All Active Notifications</h2>
-        <div id="all-notifications">
-          Loading all notifications...
-        </div>
+        <h2>Active Notifications</h2>
+        <div id="all-notifications">Loading all notifications...</div>
       </section>
     </div>
 
     <script>
+      // API Configuration
+      const API_BASE_URL =
+        "https://3vnuov7klmki7q5faqknhh7jem0corgn.lambda-url.eu-west-2.on.aws";
+
+      // Configure HTMX for cross-domain requests
+      document.addEventListener('DOMContentLoaded', function() {
+        // Allow cross-domain requests
+        htmx.config.selfRequestsOnly = false;
+      });
+
+      // Discord webhook validation
+      function isValidDiscordWebhook(url) {
+        const discordWebhookRegex = /^https:\/\/discord\.com\/api\/webhooks\/\d+\/[\w-]+$/;
+        return discordWebhookRegex.test(url);
+      }
+
+      function validateWebhookInput() {
+        const webhookInput = document.getElementById("webhook_url");
+        const loadBtn = document.getElementById("load-btn");
+        const webhookUrl = webhookInput.value.trim();
+
+        if (isValidDiscordWebhook(webhookUrl)) {
+          loadBtn.disabled = false;
+          webhookInput.classList.remove("invalid");
+          webhookInput.classList.add("valid");
+        } else {
+          loadBtn.disabled = true;
+          webhookInput.classList.remove("valid");
+          if (webhookUrl.length > 0) {
+            webhookInput.classList.add("invalid");
+          } else {
+            webhookInput.classList.remove("invalid");
+          }
+        }
+      }
+
+      // Dark mode functionality
+      function initDarkMode() {
+        const savedTheme = localStorage.getItem("theme") || "light";
+        document.documentElement.setAttribute("data-theme", savedTheme);
+      }
+
+      function toggleDarkMode() {
+        const currentTheme =
+          document.documentElement.getAttribute("data-theme") || "light";
+        const newTheme = currentTheme === "light" ? "dark" : "light";
+        document.documentElement.setAttribute("data-theme", newTheme);
+        localStorage.setItem("theme", newTheme);
+      }
+
       // Load saved webhook URL from localStorage
       document.addEventListener("DOMContentLoaded", function () {
+        // Initialize dark mode
+        initDarkMode();
+
+        // Add dark mode toggle event listener
+        document
+          .getElementById("dark-mode-toggle")
+          .addEventListener("click", toggleDarkMode);
+
         const savedWebhookUrl = localStorage.getItem("webhook_url");
         if (savedWebhookUrl) {
           document.getElementById("webhook_url").value = savedWebhookUrl;
-          // Auto-trigger the Load button's HTMX request
+        }
+
+        // Validate on page load
+        validateWebhookInput();
+
+        // Auto-trigger the Load button if valid
+        if (!document.getElementById("load-btn").disabled) {
           htmx.trigger("#load-btn", "click");
         }
       });
 
-      // Save webhook URL to localStorage when changed
+      // Save webhook URL to localStorage and validate when changed
       document
         .getElementById("webhook_url")
         .addEventListener("input", function (e) {
           localStorage.setItem("webhook_url", e.target.value);
+          validateWebhookInput();
         });
 
-      // Clear category selection when search term changes
-      // document.body.addEventListener("input", function (e) {
-      //   if (e.target.name === "search_term") {
-      //     // Find the category select element relative to this search input
-      //     const categorySelect = e.target
-      //       .closest(".category-search-container")
-      //       ?.querySelector("select[name='category']");
+      // Initialize Choices.js for category search
+      document.body.addEventListener("htmx:afterSettle", function (e) {
+        // Initialize category search dropdowns
+        const categorySelects = e.target.querySelectorAll(".category-search");
+        categorySelects.forEach((select) => {
+          if (!select.choicesInstance) {
+            const choices = new Choices(select, {
+              searchEnabled: true,
+              searchChoices: false,
+              placeholder: true,
+              placeholderValue: "Search and select a game...",
+              noResultsText: "No games found",
+              noChoicesText: "Type to search for games",
+              loadingText: "Loading...",
+              shouldSort: false,
+              position: "bottom",
+            });
 
-      //     if (categorySelect) {
-      //       categorySelect.selectedIndex = -1; // Clear selection entirely
-      //     }
-      //   }
-      // });
+            // Store instance reference
+            select.choicesInstance = choices;
+
+            // Set up search with debouncing
+            let searchTimeout;
+            select.addEventListener("search", function (e) {
+              const query = e.detail.value;
+
+              clearTimeout(searchTimeout);
+              searchTimeout = setTimeout(async () => {
+                if (query.length >= 2) {
+                  try {
+                    const response = await fetch(
+                      `${API_BASE_URL}/categories/search?q=${encodeURIComponent(
+                        query
+                      )}`
+                    );
+                    const results = await response.json();
+
+                    choices.clearChoices();
+                    choices.setChoices(results, "value", "label", true);
+                  } catch (error) {
+                    console.error("Category search failed:", error);
+                  }
+                }
+              }, 200);
+            });
+
+            // Handle selection changes for form validation
+            select.addEventListener("change", function (e) {
+              const form = e.target.closest("form");
+              if (form) {
+                updateSubmitButtonState(form);
+              }
+            });
+          }
+        });
+      });
+
+      // Update submit button state based on category selection
+      function updateSubmitButtonState(form) {
+        const categorySelect = form.querySelector('select[name="category"]');
+        const submitButton = form.querySelector('button[type="submit"]');
+
+        if (submitButton && categorySelect) {
+          const isValid =
+            categorySelect.value && categorySelect.value.trim() !== "";
+          submitButton.disabled = !isValid;
+        }
+      }
+
+      // Initialize Lucide icons after HTMX content updates
+      document.body.addEventListener("htmx:afterSettle", function () {
+        lucide.createIcons();
+      });
+
+      // Initialize Lucide icons on page load
+      document.addEventListener("DOMContentLoaded", function () {
+        lucide.createIcons();
+      });
     </script>
   </body>
 </html>

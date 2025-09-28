@@ -28,9 +28,15 @@ export async function webHandler(
     // OPTIONS requests should be handled by Lambda Function URL CORS configuration
 
     if (path === "/notifications" && method === "GET") {
-      console.log("GET /notifications - Query params:", event.queryStringParameters);
+      console.log(
+        "GET /notifications - Query params:",
+        event.queryStringParameters
+      );
       console.log("GET /notifications - Body:", event.body);
-      console.log("GET /notifications - isBase64Encoded:", event.isBase64Encoded);
+      console.log(
+        "GET /notifications - isBase64Encoded:",
+        event.isBase64Encoded
+      );
 
       let webhookUrl = event.queryStringParameters?.webhook_url;
 
@@ -71,8 +77,8 @@ export async function webHandler(
     const deleteMatch = path.match(/^\/notifications\/([^\/]+)\/([^\/]+)$/);
     if (deleteMatch && method === "DELETE") {
       return await deleteNotification(
-        deleteMatch[1],
-        deleteMatch[2],
+        decodeURIComponent(deleteMatch[1]),
+        decodeURIComponent(deleteMatch[2]),
         event,
         headers
       );
@@ -82,8 +88,8 @@ export async function webHandler(
     const updateMatch = path.match(/^\/notifications\/([^\/]+)\/([^\/]+)$/);
     if (updateMatch && method === "PUT") {
       return await updateNotification(
-        updateMatch[1],
-        updateMatch[2],
+        decodeURIComponent(updateMatch[1]),
+        decodeURIComponent(updateMatch[2]),
         event,
         headers
       );
@@ -104,7 +110,12 @@ export async function webHandler(
           body: '<div class="error">Missing webhook URL parameter</div>',
         };
       }
-      return await getEditForm(editMatch[1], editMatch[2], webhookUrl, headers);
+      return await getEditForm(
+        decodeURIComponent(editMatch[1]),
+        decodeURIComponent(editMatch[2]),
+        webhookUrl,
+        headers
+      );
     }
 
     // Handle view requests: /notifications/{pk}/{sk}
@@ -167,22 +178,26 @@ async function getNotificationsByWebhook(
       }
 
       const successInfo = config.last_success
-        ? `✓ Last success: ${new Date(
+        ? `<i data-lucide="check-circle"></i> Last success: ${new Date(
             config.last_success
           ).toLocaleDateString()}`
-        : "⚠ Never successful";
+        : `<i data-lucide="alert-triangle"></i> Never successful`;
 
       const failureInfo =
-        config.failure_count > 0 ? ` | ✗ ${config.failure_count} failures` : "";
+        config.failure_count > 0
+          ? `<i data-lucide="x-circle"></i> ${config.failure_count} failures`
+          : "";
 
       const tagsInfo =
         config.required_tags && config.required_tags.length > 0
-          ? ` | 🏷️ Tags: ${config.required_tags.join(", ")}`
+          ? `<i data-lucide="tag"></i> Required Tags: ${config.required_tags.join(
+              ", "
+            )}`
           : "";
 
       const viewersInfo =
         config.minimum_viewers && config.minimum_viewers > 1
-          ? ` | 👥 Min viewers: ${config.minimum_viewers}`
+          ? `<i data-lucide="users"></i> Min viewers: ${config.minimum_viewers}`
           : "";
 
       // Fix date handling
@@ -199,16 +214,18 @@ async function getNotificationsByWebhook(
             <div class="config-header">
               <h3>${config.game_name || `Game ID: ${config.game_id}`}</h3>
               <div class="config-actions">
-                <button class="btn-edit"
-                        hx-get="https://3vnuov7klmki7q5faqknhh7jem0corgn.lambda-url.eu-west-2.on.aws/notifications/${config.pk}/${
-        config.sk
-      }/edit?webhook_url=${encodeURIComponent(config.webhook_url)}"
+                <!-- <button class="btn-edit"
+                        hx-get="/notifications/${
+                          config.pk
+                        }/${config.sk}/edit?webhook_url=${encodeURIComponent(
+        config.webhook_url
+      )}"
                         hx-target="closest .config-item"
                         hx-swap="outerHTML">
                   Edit
-                </button>
+                </button> -->
                 <button class="btn-delete"
-                        hx-delete="https://3vnuov7klmki7q5faqknhh7jem0corgn.lambda-url.eu-west-2.on.aws/notifications/${encodeURIComponent(
+                        hx-delete="/notifications/${encodeURIComponent(
                           config.pk
                         )}/${encodeURIComponent(config.sk)}"
                         hx-vals='{"webhook_url": "${config.webhook_url.replace(
@@ -225,8 +242,13 @@ async function getNotificationsByWebhook(
               </div>
             </div>
             <div class="config-details">
-              ${successInfo}${failureInfo}${tagsInfo}${viewersInfo}
-              <br><small>Created: ${formattedDate}</small>
+              <div class="config-meta">
+                <div class="meta-item">${successInfo}</div>
+                ${failureInfo ? `<div class="meta-item">${failureInfo}</div>` : ''}
+                ${tagsInfo ? `<div class="meta-item">${tagsInfo}</div>` : ''}
+                ${viewersInfo ? `<div class="meta-item">${viewersInfo}</div>` : ''}
+              </div>
+              <small class="created-date">Created: ${formattedDate}</small>
             </div>
           </div>
         </div>
@@ -242,7 +264,7 @@ async function getNotificationsByWebhook(
           </div>
 
           <form class="add-config-form"
-                hx-post="https://3vnuov7klmki7q5faqknhh7jem0corgn.lambda-url.eu-west-2.on.aws/notifications"
+                hx-post="/notifications"
                 hx-target="#all-notifications"
                 hx-swap="innerHTML"
                 hx-vals='{"webhook_url": "${webhookUrl}"}'>
@@ -250,20 +272,9 @@ async function getNotificationsByWebhook(
             <div class="form-fields">
               <div class="field-group">
                 <label>Category: <span class="required">*</span></label>
-                <div class="category-search-container">
-                  <input name="search_term" type="text" placeholder="Search and select a game..."
-                         autocomplete="off"
-                         hx-trigger="input changed delay:500ms"
-                         hx-target="next .category-results"
-                         hx-swap="innerHTML"
-                         hx-get="https://3vnuov7klmki7q5faqknhh7jem0corgn.lambda-url.eu-west-2.on.aws/categories/search"
-                         hx-vals="{}"
-                         hx-include="this">
-                  <div class="category-results">
-                    <select name="category" style="display: none;" required>
-                    </select>
-                  </div>
-                </div>
+                <select name="category" class="category-search" required>
+                  <option value="">Search and select a game...</option>
+                </select>
               </div>
 
               <div class="field-row">
@@ -620,51 +631,35 @@ async function searchCategories(
   event: LambdaFunctionUrlEvent,
   headers: Record<string, string>
 ): Promise<APIGatewayProxyResult> {
-  const query = event.queryStringParameters?.search_term || "";
+  const query = event.queryStringParameters?.q || "";
 
   if (!query.trim()) {
     return {
       statusCode: 200,
-      headers,
-      body: `<select name="category" style="display: none;" required>
-               <option value="">Select a category...</option>
-             </select>
-             <div>Search for a game...</div>`,
+      headers: { ...headers, "Content-Type": "application/json" },
+      body: JSON.stringify([]),
     };
   }
 
   try {
     const categories = await twitch.searchCategories(query);
 
-    if (categories.length === 0) {
-      return {
-        statusCode: 200,
-        headers,
-        body: `<select name="category" required>
-                 <option value="">No categories found</option>
-               </select>`,
-      };
-    }
+    const results = categories.map((category) => ({
+      value: JSON.stringify({ id: category.id, name: category.name }),
+      label: category.name,
+    }));
 
-    let selectHtml = '<select name="category" required>';
-    selectHtml += '<option value="">Select a category...</option>';
-
-    categories.forEach((category) => {
-      const value = JSON.stringify({ id: category.id, name: category.name });
-      selectHtml += `<option value='${value}'>${category.name}</option>`;
-    });
-
-    selectHtml += "</select>";
-
-    return { statusCode: 200, headers, body: selectHtml };
+    return {
+      statusCode: 200,
+      headers: { ...headers, "Content-Type": "application/json" },
+      body: JSON.stringify(results),
+    };
   } catch (error) {
     console.error("Category search error:", error);
     return {
       statusCode: 500,
-      headers,
-      body: `<select name="category" required>
-               <option value="">Search failed</option>
-             </select>`,
+      headers: { ...headers, "Content-Type": "application/json" },
+      body: JSON.stringify([]),
     };
   }
 }
@@ -704,7 +699,7 @@ async function getEditForm(
       <div class="config-item editing">
         <div class="config-info">
           <form class="inline-edit-form"
-                hx-put="https://3vnuov7klmki7q5faqknhh7jem0corgn.lambda-url.eu-west-2.on.aws/notifications/${encodeURIComponent(
+                hx-put="/notifications/${encodeURIComponent(
                   config.pk
                 )}/${encodeURIComponent(config.sk)}"
                 hx-target="closest .config-item"
@@ -738,7 +733,7 @@ async function getEditForm(
             <div class="edit-actions">
               <button type="submit" class="btn-warning btn-sm">Save</button>
               <button type="button" class="btn-secondary btn-sm"
-                      hx-get="https://3vnuov7klmki7q5faqknhh7jem0corgn.lambda-url.eu-west-2.on.aws/notifications/${encodeURIComponent(
+                      hx-get="/notifications/${encodeURIComponent(
                         config.pk
                       )}/${encodeURIComponent(
       config.sk
@@ -800,22 +795,26 @@ async function getConfigView(
 
     // Generate the same view HTML as in getNotificationsByWebhook
     const successInfo = config.last_success
-      ? ` | ✅ Last success: ${new Date(
+      ? `<i data-lucide="check-circle"></i> Last success: ${new Date(
           config.last_success
         ).toLocaleDateString()}`
       : "";
 
     const failureInfo =
-      config.failure_count > 0 ? ` | ❌ Failures: ${config.failure_count}` : "";
+      config.failure_count > 0
+        ? `<i data-lucide="x-circle"></i> Failures: ${config.failure_count}`
+        : "";
 
     const tagsInfo =
       config.required_tags && config.required_tags.length > 0
-        ? ` | 🏷️ Tags: ${config.required_tags.join(", ")}`
+        ? `<i data-lucide="tag"></i> Tags: ${config.required_tags.join(
+            ", "
+          )}`
         : "";
 
     const viewersInfo =
       config.minimum_viewers && config.minimum_viewers > 1
-        ? ` | 👥 Min viewers: ${config.minimum_viewers}`
+        ? `<i data-lucide="users"></i> Min viewers: ${config.minimum_viewers}`
         : "";
 
     const createdDate = config.created_at
@@ -831,16 +830,18 @@ async function getConfigView(
           <div class="config-header">
             <h3>${config.game_name || `Game ID: ${config.game_id}`}</h3>
             <div class="config-actions">
-              <button class="btn-edit"
-                      hx-get="https://3vnuov7klmki7q5faqknhh7jem0corgn.lambda-url.eu-west-2.on.aws/notifications/${config.pk}/${
-      config.sk
-    }/edit?webhook_url=${encodeURIComponent(config.webhook_url)}"
+              <!-- <button class="btn-edit"
+                      hx-get="/notifications/${
+                        config.pk
+                      }/${config.sk}/edit?webhook_url=${encodeURIComponent(
+      config.webhook_url
+    )}"
                       hx-target="closest .config-item"
                       hx-swap="outerHTML">
                 Edit
-              </button>
+              </button> -->
               <button class="btn-delete"
-                      hx-delete="https://3vnuov7klmki7q5faqknhh7jem0corgn.lambda-url.eu-west-2.on.aws/notifications/${encodeURIComponent(
+                      hx-delete="/notifications/${encodeURIComponent(
                         config.pk
                       )}/${encodeURIComponent(config.sk)}"
                       hx-vals='{"webhook_url": "${config.webhook_url.replace(
@@ -857,8 +858,13 @@ async function getConfigView(
             </div>
           </div>
           <div class="config-details">
-            ${successInfo}${failureInfo}${tagsInfo}${viewersInfo}
-            <br><small>Created: ${formattedDate}</small>
+            <div class="config-meta">
+              <div class="meta-item">${successInfo}</div>
+              ${failureInfo ? `<div class="meta-item">${failureInfo}</div>` : ''}
+              ${tagsInfo ? `<div class="meta-item">${tagsInfo}</div>` : ''}
+              ${viewersInfo ? `<div class="meta-item">${viewersInfo}</div>` : ''}
+            </div>
+            <small class="created-date">Created: ${formattedDate}</small>
           </div>
         </div>
       </div>

@@ -37,22 +37,40 @@ export class TwitchService {
     if (gameIds.length === 0) return [];
 
     const token = await this.getAccessToken();
-    const gameIdParams = gameIds.map(id => `game_id=${id}`).join('&');
-    const url = `${config.twitch.baseUrl}/streams?${gameIdParams}&first=100`;
+    const allStreams: TwitchStream[] = [];
 
-    const response = await fetch(url, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Client-Id': config.twitch.clientId,
-      },
-    });
+    // Make one request per unique game ID to get top 100 streams for each category
+    const uniqueGameIds = [...new Set(gameIds)];
+    console.log(`Making ${uniqueGameIds.length} individual requests for categories: ${uniqueGameIds.join(', ')}`);
 
-    if (!response.ok) {
-      throw new Error(`Failed to fetch streams: ${response.status}`);
+    for (const gameId of uniqueGameIds) {
+      try {
+        const url = `${config.twitch.baseUrl}/streams?game_id=${gameId}&first=100`;
+
+        const response = await fetch(url, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Client-Id': config.twitch.clientId,
+          },
+        });
+
+        if (!response.ok) {
+          console.error(`Failed to fetch streams for game ID ${gameId}: ${response.status}`);
+          continue; // Skip this category but continue with others
+        }
+
+        const data = await response.json() as TwitchApiResponse<TwitchStream>;
+        console.log(`Found ${data.data.length} streams for game ID ${gameId}`);
+        allStreams.push(...data.data);
+
+      } catch (error) {
+        console.error(`Error fetching streams for game ID ${gameId}:`, error);
+        // Continue with other categories even if one fails
+      }
     }
 
-    const data = await response.json() as TwitchApiResponse<TwitchStream>;
-    return data.data;
+    console.log(`Total streams found across all categories: ${allStreams.length}`);
+    return allStreams;
   }
 
   async searchCategories(query: string): Promise<TwitchCategory[]> {
