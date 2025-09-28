@@ -5,6 +5,7 @@ export interface NotificationConfig {
   game_id: string;
   game_name: string;
   required_tags?: string[];  // Only notify if stream has ALL these tags
+  required_language?: string;  // Only notify if stream language matches (empty/null = any)
   minimum_viewers?: number;  // Only notify if stream has at least this many viewers
   created_at: string;
   last_success?: string;

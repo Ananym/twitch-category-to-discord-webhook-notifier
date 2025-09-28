@@ -173,8 +173,26 @@
           validateWebhookInput();
         });
 
-      // Initialize Choices.js for category search
+      // Initialize Choices.js for category search and language dropdowns
       document.body.addEventListener("htmx:afterSettle", function (e) {
+        // Initialize language dropdowns
+        const languageSelects = e.target.querySelectorAll(".language-select");
+        languageSelects.forEach((select) => {
+          if (!select.choicesInstance) {
+            const choices = new Choices(select, {
+              searchEnabled: true,
+              searchChoices: true,
+              placeholder: true,
+              placeholderValue: "Any Language",
+              noResultsText: "No languages found",
+              noChoicesText: "No languages available",
+              shouldSort: false,
+              position: "bottom",
+            });
+            select.choicesInstance = choices;
+          }
+        });
+
         // Initialize category search dropdowns
         const categorySelects = e.target.querySelectorAll(".category-search");
         categorySelects.forEach((select) => {

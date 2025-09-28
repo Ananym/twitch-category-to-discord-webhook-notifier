@@ -195,6 +195,11 @@ async function getNotificationsByWebhook(
             )}`
           : "";
 
+      const languageInfo =
+        config.required_language && config.required_language.trim() !== ""
+          ? `<i data-lucide="globe"></i> Language: ${config.required_language.toUpperCase()}`
+          : "";
+
       const viewersInfo =
         config.minimum_viewers && config.minimum_viewers > 1
           ? `<i data-lucide="users"></i> Min viewers: ${config.minimum_viewers}`
@@ -245,6 +250,7 @@ async function getNotificationsByWebhook(
               <div class="config-meta">
                 <div class="meta-item">${successInfo}</div>
                 ${failureInfo ? `<div class="meta-item">${failureInfo}</div>` : ''}
+                ${languageInfo ? `<div class="meta-item">${languageInfo}</div>` : ''}
                 ${tagsInfo ? `<div class="meta-item">${tagsInfo}</div>` : ''}
                 ${viewersInfo ? `<div class="meta-item">${viewersInfo}</div>` : ''}
               </div>
@@ -279,14 +285,204 @@ async function getNotificationsByWebhook(
 
               <div class="field-row">
                 <div class="field-group">
-                  <label>Required Tags:</label>
-                  <input name="required_tags" type="text" placeholder="e.g. english, drops"
-                         >
+                  <label>Required Language:</label>
+                  <select name="required_language" class="language-select">
+                    <option value="">Any Language</option>
+                    <option value="aa">aa - Afar</option>
+                    <option value="ab">ab - Abkhazian</option>
+                    <option value="ae">ae - Avestan</option>
+                    <option value="af">af - Afrikaans</option>
+                    <option value="ak">ak - Akan</option>
+                    <option value="am">am - Amharic</option>
+                    <option value="an">an - Aragonese</option>
+                    <option value="ar">ar - Arabic</option>
+                    <option value="as">as - Assamese</option>
+                    <option value="av">av - Avaric</option>
+                    <option value="ay">ay - Aymara</option>
+                    <option value="az">az - Azerbaijani</option>
+                    <option value="ba">ba - Bashkir</option>
+                    <option value="be">be - Belarusian</option>
+                    <option value="bg">bg - Bulgarian</option>
+                    <option value="bh">bh - Bihari languages</option>
+                    <option value="bi">bi - Bislama</option>
+                    <option value="bm">bm - Bambara</option>
+                    <option value="bn">bn - Bengali</option>
+                    <option value="bo">bo - Tibetan</option>
+                    <option value="br">br - Breton</option>
+                    <option value="bs">bs - Bosnian</option>
+                    <option value="ca">ca - Catalan</option>
+                    <option value="ce">ce - Chechen</option>
+                    <option value="ch">ch - Chamorro</option>
+                    <option value="co">co - Corsican</option>
+                    <option value="cr">cr - Cree</option>
+                    <option value="cs">cs - Czech</option>
+                    <option value="cu">cu - Church Slavic</option>
+                    <option value="cv">cv - Chuvash</option>
+                    <option value="cy">cy - Welsh</option>
+                    <option value="da">da - Danish</option>
+                    <option value="de">de - German</option>
+                    <option value="dv">dv - Divehi</option>
+                    <option value="dz">dz - Dzongkha</option>
+                    <option value="ee">ee - Ewe</option>
+                    <option value="el">el - Greek</option>
+                    <option value="en">en - English</option>
+                    <option value="eo">eo - Esperanto</option>
+                    <option value="es">es - Spanish</option>
+                    <option value="et">et - Estonian</option>
+                    <option value="eu">eu - Basque</option>
+                    <option value="fa">fa - Persian</option>
+                    <option value="ff">ff - Fulah</option>
+                    <option value="fi">fi - Finnish</option>
+                    <option value="fj">fj - Fijian</option>
+                    <option value="fo">fo - Faroese</option>
+                    <option value="fr">fr - French</option>
+                    <option value="fy">fy - Western Frisian</option>
+                    <option value="ga">ga - Irish</option>
+                    <option value="gd">gd - Gaelic</option>
+                    <option value="gl">gl - Galician</option>
+                    <option value="gn">gn - Guarani</option>
+                    <option value="gu">gu - Gujarati</option>
+                    <option value="gv">gv - Manx</option>
+                    <option value="ha">ha - Hausa</option>
+                    <option value="he">he - Hebrew</option>
+                    <option value="hi">hi - Hindi</option>
+                    <option value="ho">ho - Hiri Motu</option>
+                    <option value="hr">hr - Croatian</option>
+                    <option value="ht">ht - Haitian</option>
+                    <option value="hu">hu - Hungarian</option>
+                    <option value="hy">hy - Armenian</option>
+                    <option value="hz">hz - Herero</option>
+                    <option value="ia">ia - Interlingua</option>
+                    <option value="id">id - Indonesian</option>
+                    <option value="ie">ie - Interlingue</option>
+                    <option value="ig">ig - Igbo</option>
+                    <option value="ii">ii - Sichuan Yi</option>
+                    <option value="ik">ik - Inupiaq</option>
+                    <option value="io">io - Ido</option>
+                    <option value="is">is - Icelandic</option>
+                    <option value="it">it - Italian</option>
+                    <option value="iu">iu - Inuktitut</option>
+                    <option value="ja">ja - Japanese</option>
+                    <option value="jv">jv - Javanese</option>
+                    <option value="ka">ka - Georgian</option>
+                    <option value="kg">kg - Kongo</option>
+                    <option value="ki">ki - Kikuyu</option>
+                    <option value="kj">kj - Kuanyama</option>
+                    <option value="kk">kk - Kazakh</option>
+                    <option value="kl">kl - Kalaallisut</option>
+                    <option value="km">km - Central Khmer</option>
+                    <option value="kn">kn - Kannada</option>
+                    <option value="ko">ko - Korean</option>
+                    <option value="kr">kr - Kanuri</option>
+                    <option value="ks">ks - Kashmiri</option>
+                    <option value="ku">ku - Kurdish</option>
+                    <option value="kv">kv - Komi</option>
+                    <option value="kw">kw - Cornish</option>
+                    <option value="ky">ky - Kirghiz</option>
+                    <option value="la">la - Latin</option>
+                    <option value="lb">lb - Luxembourgish</option>
+                    <option value="lg">lg - Ganda</option>
+                    <option value="li">li - Limburgan</option>
+                    <option value="ln">ln - Lingala</option>
+                    <option value="lo">lo - Lao</option>
+                    <option value="lt">lt - Lithuanian</option>
+                    <option value="lu">lu - Luba-Katanga</option>
+                    <option value="lv">lv - Latvian</option>
+                    <option value="mg">mg - Malagasy</option>
+                    <option value="mh">mh - Marshallese</option>
+                    <option value="mi">mi - Maori</option>
+                    <option value="mk">mk - Macedonian</option>
+                    <option value="ml">ml - Malayalam</option>
+                    <option value="mn">mn - Mongolian</option>
+                    <option value="mr">mr - Marathi</option>
+                    <option value="ms">ms - Malay</option>
+                    <option value="mt">mt - Maltese</option>
+                    <option value="my">my - Burmese</option>
+                    <option value="na">na - Nauru</option>
+                    <option value="nb">nb - Norwegian Bokmål</option>
+                    <option value="nd">nd - North Ndebele</option>
+                    <option value="ne">ne - Nepali</option>
+                    <option value="ng">ng - Ndonga</option>
+                    <option value="nl">nl - Dutch</option>
+                    <option value="nn">nn - Norwegian Nynorsk</option>
+                    <option value="no">no - Norwegian</option>
+                    <option value="nr">nr - South Ndebele</option>
+                    <option value="nv">nv - Navajo</option>
+                    <option value="ny">ny - Chichewa</option>
+                    <option value="oc">oc - Occitan</option>
+                    <option value="oj">oj - Ojibwa</option>
+                    <option value="om">om - Oromo</option>
+                    <option value="or">or - Oriya</option>
+                    <option value="os">os - Ossetian</option>
+                    <option value="pa">pa - Panjabi</option>
+                    <option value="pi">pi - Pali</option>
+                    <option value="pl">pl - Polish</option>
+                    <option value="ps">ps - Pushto</option>
+                    <option value="pt">pt - Portuguese</option>
+                    <option value="qu">qu - Quechua</option>
+                    <option value="rm">rm - Romansh</option>
+                    <option value="rn">rn - Rundi</option>
+                    <option value="ro">ro - Romanian</option>
+                    <option value="ru">ru - Russian</option>
+                    <option value="rw">rw - Kinyarwanda</option>
+                    <option value="sa">sa - Sanskrit</option>
+                    <option value="sc">sc - Sardinian</option>
+                    <option value="sd">sd - Sindhi</option>
+                    <option value="se">se - Northern Sami</option>
+                    <option value="sg">sg - Sango</option>
+                    <option value="si">si - Sinhala</option>
+                    <option value="sk">sk - Slovak</option>
+                    <option value="sl">sl - Slovenian</option>
+                    <option value="sm">sm - Samoan</option>
+                    <option value="sn">sn - Shona</option>
+                    <option value="so">so - Somali</option>
+                    <option value="sq">sq - Albanian</option>
+                    <option value="sr">sr - Serbian</option>
+                    <option value="ss">ss - Swati</option>
+                    <option value="st">st - Southern Sotho</option>
+                    <option value="su">su - Sundanese</option>
+                    <option value="sv">sv - Swedish</option>
+                    <option value="sw">sw - Swahili</option>
+                    <option value="ta">ta - Tamil</option>
+                    <option value="te">te - Telugu</option>
+                    <option value="tg">tg - Tajik</option>
+                    <option value="th">th - Thai</option>
+                    <option value="ti">ti - Tigrinya</option>
+                    <option value="tk">tk - Turkmen</option>
+                    <option value="tl">tl - Tagalog</option>
+                    <option value="tn">tn - Tswana</option>
+                    <option value="to">to - Tonga</option>
+                    <option value="tr">tr - Turkish</option>
+                    <option value="ts">ts - Tsonga</option>
+                    <option value="tt">tt - Tatar</option>
+                    <option value="tw">tw - Twi</option>
+                    <option value="ty">ty - Tahitian</option>
+                    <option value="ug">ug - Uighur</option>
+                    <option value="uk">uk - Ukrainian</option>
+                    <option value="ur">ur - Urdu</option>
+                    <option value="uz">uz - Uzbek</option>
+                    <option value="ve">ve - Venda</option>
+                    <option value="vi">vi - Vietnamese</option>
+                    <option value="vo">vo - Volapük</option>
+                    <option value="wa">wa - Walloon</option>
+                    <option value="wo">wo - Wolof</option>
+                    <option value="xh">xh - Xhosa</option>
+                    <option value="yi">yi - Yiddish</option>
+                    <option value="yo">yo - Yoruba</option>
+                    <option value="za">za - Zhuang</option>
+                    <option value="zh">zh - Chinese</option>
+                    <option value="zu">zu - Zulu</option>
+                  </select>
                 </div>
                 <div class="field-group">
                   <label>Min Viewers:</label>
-                  <input name="minimum_viewers" type="number" min="0" value="5"
-                         >
+                  <input name="minimum_viewers" type="number" min="0" value="5">
+                </div>
+              </div>
+              <div class="field-row">
+                <div class="field-group">
+                  <label>Required Tags:</label>
+                  <input name="required_tags" type="text" placeholder="tag1, tag2, tag3">
                 </div>
               </div>
 
@@ -338,6 +534,7 @@ async function createNotification(
   const webhookUrl = params.get("webhook_url");
   const categoryParam = params.get("category");
   const requiredTagsParam = params.get("required_tags");
+  const requiredLanguageParam = params.get("required_language");
   const minimumViewersParam = params.get("minimum_viewers");
 
   console.log("Parsed params:", {
@@ -382,6 +579,11 @@ async function createNotification(
         .filter((tag) => tag.length > 0)
     : [];
 
+  // Parse required language
+  const requiredLanguage = requiredLanguageParam && requiredLanguageParam.trim() !== ""
+    ? requiredLanguageParam.trim()
+    : undefined;
+
   // Parse minimum viewers
   const minimumViewers = minimumViewersParam
     ? parseInt(minimumViewersParam, 10)
@@ -415,6 +617,7 @@ async function createNotification(
     game_id: gameId,
     game_name: gameName,
     required_tags: requiredTags.length > 0 ? requiredTags : undefined,
+    required_language: requiredLanguage,
     minimum_viewers: minimumViewers > 1 ? minimumViewers : undefined,
     created_at: new Date().toISOString(),
     failure_count: 0,
@@ -551,6 +754,7 @@ async function updateNotification(
   const gameId = params.get("game_id");
   const gameName = params.get("game_name");
   const requiredTagsParam = params.get("required_tags");
+  const requiredLanguageParam = params.get("required_language");
   const minimumViewersParam = params.get("minimum_viewers");
 
   if (!webhookUrl || !gameId || !gameName) {
@@ -590,6 +794,11 @@ async function updateNotification(
         .filter((tag) => tag.length > 0)
     : [];
 
+  // Parse required language
+  const requiredLanguage = requiredLanguageParam && requiredLanguageParam.trim() !== ""
+    ? requiredLanguageParam.trim()
+    : undefined;
+
   // Parse minimum viewers
   const minimumViewers = minimumViewersParam
     ? parseInt(minimumViewersParam, 10)
@@ -608,6 +817,7 @@ async function updateNotification(
   const updatedConfig: NotificationConfig = {
     ...existingConfig,
     required_tags: requiredTags.length > 0 ? requiredTags : undefined,
+    required_language: requiredLanguage,
     minimum_viewers: minimumViewers > 1 ? minimumViewers : undefined,
     updated_at: new Date().toISOString(),
   };
@@ -693,7 +903,201 @@ async function getEditForm(
     }
 
     const tagsValue = config.required_tags?.join(", ") || "";
+    const languageValue = config.required_language || "";
     const viewersValue = config.minimum_viewers || 1;
+
+    // Generate language options with selected value
+    const languageOptions = [
+      { value: "", label: "Any Language" },
+      { value: "aa", label: "aa - Afar" },
+      { value: "ab", label: "ab - Abkhazian" },
+      { value: "ae", label: "ae - Avestan" },
+      { value: "af", label: "af - Afrikaans" },
+      { value: "ak", label: "ak - Akan" },
+      { value: "am", label: "am - Amharic" },
+      { value: "an", label: "an - Aragonese" },
+      { value: "ar", label: "ar - Arabic" },
+      { value: "as", label: "as - Assamese" },
+      { value: "av", label: "av - Avaric" },
+      { value: "ay", label: "ay - Aymara" },
+      { value: "az", label: "az - Azerbaijani" },
+      { value: "ba", label: "ba - Bashkir" },
+      { value: "be", label: "be - Belarusian" },
+      { value: "bg", label: "bg - Bulgarian" },
+      { value: "bh", label: "bh - Bihari languages" },
+      { value: "bi", label: "bi - Bislama" },
+      { value: "bm", label: "bm - Bambara" },
+      { value: "bn", label: "bn - Bengali" },
+      { value: "bo", label: "bo - Tibetan" },
+      { value: "br", label: "br - Breton" },
+      { value: "bs", label: "bs - Bosnian" },
+      { value: "ca", label: "ca - Catalan" },
+      { value: "ce", label: "ce - Chechen" },
+      { value: "ch", label: "ch - Chamorro" },
+      { value: "co", label: "co - Corsican" },
+      { value: "cr", label: "cr - Cree" },
+      { value: "cs", label: "cs - Czech" },
+      { value: "cu", label: "cu - Church Slavic" },
+      { value: "cv", label: "cv - Chuvash" },
+      { value: "cy", label: "cy - Welsh" },
+      { value: "da", label: "da - Danish" },
+      { value: "de", label: "de - German" },
+      { value: "dv", label: "dv - Divehi" },
+      { value: "dz", label: "dz - Dzongkha" },
+      { value: "ee", label: "ee - Ewe" },
+      { value: "el", label: "el - Greek" },
+      { value: "en", label: "en - English" },
+      { value: "eo", label: "eo - Esperanto" },
+      { value: "es", label: "es - Spanish" },
+      { value: "et", label: "et - Estonian" },
+      { value: "eu", label: "eu - Basque" },
+      { value: "fa", label: "fa - Persian" },
+      { value: "ff", label: "ff - Fulah" },
+      { value: "fi", label: "fi - Finnish" },
+      { value: "fj", label: "fj - Fijian" },
+      { value: "fo", label: "fo - Faroese" },
+      { value: "fr", label: "fr - French" },
+      { value: "fy", label: "fy - Western Frisian" },
+      { value: "ga", label: "ga - Irish" },
+      { value: "gd", label: "gd - Gaelic" },
+      { value: "gl", label: "gl - Galician" },
+      { value: "gn", label: "gn - Guarani" },
+      { value: "gu", label: "gu - Gujarati" },
+      { value: "gv", label: "gv - Manx" },
+      { value: "ha", label: "ha - Hausa" },
+      { value: "he", label: "he - Hebrew" },
+      { value: "hi", label: "hi - Hindi" },
+      { value: "ho", label: "ho - Hiri Motu" },
+      { value: "hr", label: "hr - Croatian" },
+      { value: "ht", label: "ht - Haitian" },
+      { value: "hu", label: "hu - Hungarian" },
+      { value: "hy", label: "hy - Armenian" },
+      { value: "hz", label: "hz - Herero" },
+      { value: "ia", label: "ia - Interlingua" },
+      { value: "id", label: "id - Indonesian" },
+      { value: "ie", label: "ie - Interlingue" },
+      { value: "ig", label: "ig - Igbo" },
+      { value: "ii", label: "ii - Sichuan Yi" },
+      { value: "ik", label: "ik - Inupiaq" },
+      { value: "io", label: "io - Ido" },
+      { value: "is", label: "is - Icelandic" },
+      { value: "it", label: "it - Italian" },
+      { value: "iu", label: "iu - Inuktitut" },
+      { value: "ja", label: "ja - Japanese" },
+      { value: "jv", label: "jv - Javanese" },
+      { value: "ka", label: "ka - Georgian" },
+      { value: "kg", label: "kg - Kongo" },
+      { value: "ki", label: "ki - Kikuyu" },
+      { value: "kj", label: "kj - Kuanyama" },
+      { value: "kk", label: "kk - Kazakh" },
+      { value: "kl", label: "kl - Kalaallisut" },
+      { value: "km", label: "km - Central Khmer" },
+      { value: "kn", label: "kn - Kannada" },
+      { value: "ko", label: "ko - Korean" },
+      { value: "kr", label: "kr - Kanuri" },
+      { value: "ks", label: "ks - Kashmiri" },
+      { value: "ku", label: "ku - Kurdish" },
+      { value: "kv", label: "kv - Komi" },
+      { value: "kw", label: "kw - Cornish" },
+      { value: "ky", label: "ky - Kirghiz" },
+      { value: "la", label: "la - Latin" },
+      { value: "lb", label: "lb - Luxembourgish" },
+      { value: "lg", label: "lg - Ganda" },
+      { value: "li", label: "li - Limburgan" },
+      { value: "ln", label: "ln - Lingala" },
+      { value: "lo", label: "lo - Lao" },
+      { value: "lt", label: "lt - Lithuanian" },
+      { value: "lu", label: "lu - Luba-Katanga" },
+      { value: "lv", label: "lv - Latvian" },
+      { value: "mg", label: "mg - Malagasy" },
+      { value: "mh", label: "mh - Marshallese" },
+      { value: "mi", label: "mi - Maori" },
+      { value: "mk", label: "mk - Macedonian" },
+      { value: "ml", label: "ml - Malayalam" },
+      { value: "mn", label: "mn - Mongolian" },
+      { value: "mr", label: "mr - Marathi" },
+      { value: "ms", label: "ms - Malay" },
+      { value: "mt", label: "mt - Maltese" },
+      { value: "my", label: "my - Burmese" },
+      { value: "na", label: "na - Nauru" },
+      { value: "nb", label: "nb - Norwegian Bokmål" },
+      { value: "nd", label: "nd - North Ndebele" },
+      { value: "ne", label: "ne - Nepali" },
+      { value: "ng", label: "ng - Ndonga" },
+      { value: "nl", label: "nl - Dutch" },
+      { value: "nn", label: "nn - Norwegian Nynorsk" },
+      { value: "no", label: "no - Norwegian" },
+      { value: "nr", label: "nr - South Ndebele" },
+      { value: "nv", label: "nv - Navajo" },
+      { value: "ny", label: "ny - Chichewa" },
+      { value: "oc", label: "oc - Occitan" },
+      { value: "oj", label: "oj - Ojibwa" },
+      { value: "om", label: "om - Oromo" },
+      { value: "or", label: "or - Oriya" },
+      { value: "os", label: "os - Ossetian" },
+      { value: "pa", label: "pa - Panjabi" },
+      { value: "pi", label: "pi - Pali" },
+      { value: "pl", label: "pl - Polish" },
+      { value: "ps", label: "ps - Pushto" },
+      { value: "pt", label: "pt - Portuguese" },
+      { value: "qu", label: "qu - Quechua" },
+      { value: "rm", label: "rm - Romansh" },
+      { value: "rn", label: "rn - Rundi" },
+      { value: "ro", label: "ro - Romanian" },
+      { value: "ru", label: "ru - Russian" },
+      { value: "rw", label: "rw - Kinyarwanda" },
+      { value: "sa", label: "sa - Sanskrit" },
+      { value: "sc", label: "sc - Sardinian" },
+      { value: "sd", label: "sd - Sindhi" },
+      { value: "se", label: "se - Northern Sami" },
+      { value: "sg", label: "sg - Sango" },
+      { value: "si", label: "si - Sinhala" },
+      { value: "sk", label: "sk - Slovak" },
+      { value: "sl", label: "sl - Slovenian" },
+      { value: "sm", label: "sm - Samoan" },
+      { value: "sn", label: "sn - Shona" },
+      { value: "so", label: "so - Somali" },
+      { value: "sq", label: "sq - Albanian" },
+      { value: "sr", label: "sr - Serbian" },
+      { value: "ss", label: "ss - Swati" },
+      { value: "st", label: "st - Southern Sotho" },
+      { value: "su", label: "su - Sundanese" },
+      { value: "sv", label: "sv - Swedish" },
+      { value: "sw", label: "sw - Swahili" },
+      { value: "ta", label: "ta - Tamil" },
+      { value: "te", label: "te - Telugu" },
+      { value: "tg", label: "tg - Tajik" },
+      { value: "th", label: "th - Thai" },
+      { value: "ti", label: "ti - Tigrinya" },
+      { value: "tk", label: "tk - Turkmen" },
+      { value: "tl", label: "tl - Tagalog" },
+      { value: "tn", label: "tn - Tswana" },
+      { value: "to", label: "to - Tonga" },
+      { value: "tr", label: "tr - Turkish" },
+      { value: "ts", label: "ts - Tsonga" },
+      { value: "tt", label: "tt - Tatar" },
+      { value: "tw", label: "tw - Twi" },
+      { value: "ty", label: "ty - Tahitian" },
+      { value: "ug", label: "ug - Uighur" },
+      { value: "uk", label: "uk - Ukrainian" },
+      { value: "ur", label: "ur - Urdu" },
+      { value: "uz", label: "uz - Uzbek" },
+      { value: "ve", label: "ve - Venda" },
+      { value: "vi", label: "vi - Vietnamese" },
+      { value: "vo", label: "vo - Volapük" },
+      { value: "wa", label: "wa - Walloon" },
+      { value: "wo", label: "wo - Wolof" },
+      { value: "xh", label: "xh - Xhosa" },
+      { value: "yi", label: "yi - Yiddish" },
+      { value: "yo", label: "yo - Yoruba" },
+      { value: "za", label: "za - Zhuang" },
+      { value: "zh", label: "zh - Chinese" },
+      { value: "zu", label: "zu - Zulu" }
+    ];
+
+    const languageOptionsHtml = languageOptions.map(option =>
+      `<option value="${option.value}" ${option.value === languageValue ? 'selected' : ''}>${option.label}</option>`
+    ).join('');
 
     const html = `
       <div class="config-item editing">
@@ -721,12 +1125,20 @@ async function getEditForm(
 
             <div class="form-row">
               <div class="form-group-inline">
-                <label>Required Tags:</label>
-                <input name="required_tags" type="text" value="${tagsValue}" placeholder="english, gaming, drops">
+                <label>Required Language:</label>
+                <select name="required_language" class="language-select">
+                  ${languageOptionsHtml}
+                </select>
               </div>
               <div class="form-group-inline">
                 <label>Min Viewers:</label>
                 <input name="minimum_viewers" type="number" min="0" value="${viewersValue}">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group-inline">
+                <label>Required Tags:</label>
+                <input name="required_tags" type="text" value="${tagsValue}" placeholder="tag1, tag2, tag3">
               </div>
             </div>
 
@@ -812,6 +1224,11 @@ async function getConfigView(
           )}`
         : "";
 
+    const languageInfo =
+      config.required_language && config.required_language.trim() !== ""
+        ? `<i data-lucide="globe"></i> Language: ${config.required_language.toUpperCase()}`
+        : "";
+
     const viewersInfo =
       config.minimum_viewers && config.minimum_viewers > 1
         ? `<i data-lucide="users"></i> Min viewers: ${config.minimum_viewers}`
@@ -861,6 +1278,7 @@ async function getConfigView(
             <div class="config-meta">
               <div class="meta-item">${successInfo}</div>
               ${failureInfo ? `<div class="meta-item">${failureInfo}</div>` : ''}
+              ${languageInfo ? `<div class="meta-item">${languageInfo}</div>` : ''}
               ${tagsInfo ? `<div class="meta-item">${tagsInfo}</div>` : ''}
               ${viewersInfo ? `<div class="meta-item">${viewersInfo}</div>` : ''}
             </div>

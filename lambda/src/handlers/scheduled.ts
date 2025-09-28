@@ -63,8 +63,10 @@ export async function scheduledHandler(event: ScheduledEvent): Promise<void> {
             pk: notificationConfig.pk,
             sk: notificationConfig.sk,
             required_tags: notificationConfig.required_tags,
+            required_language: notificationConfig.required_language,
             minimum_viewers: notificationConfig.minimum_viewers,
             stream_tags: stream.tags,
+            stream_language: stream.language,
             stream_viewer_count: stream.viewer_count
           });
 
@@ -73,6 +75,18 @@ export async function scheduledHandler(event: ScheduledEvent): Promise<void> {
           if (stream.viewer_count < minViewers) {
             console.log(`Skipping notification for ${stream.user_name} - below minimum viewers threshold (${stream.viewer_count} < ${minViewers})`);
             continue;
+          }
+
+          // Check language requirement
+          if (notificationConfig.required_language && notificationConfig.required_language.trim() !== "") {
+            if (stream.language.toLowerCase() !== notificationConfig.required_language.toLowerCase()) {
+              console.log(`Skipping notification for ${stream.user_name} - language mismatch (stream: ${stream.language}, required: ${notificationConfig.required_language})`);
+              continue;
+            } else {
+              console.log(`✓ Language requirement met for ${stream.user_name} (${stream.language})`);
+            }
+          } else {
+            console.log(`No language requirement configured for ${stream.user_name} - proceeding`);
           }
 
           // Check if stream matches required tags
