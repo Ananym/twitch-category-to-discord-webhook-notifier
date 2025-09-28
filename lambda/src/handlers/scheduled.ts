@@ -71,10 +71,15 @@ export async function scheduledHandler(event: ScheduledEvent): Promise<void> {
           });
 
           // Check minimum viewers threshold
-          const minViewers = notificationConfig.minimum_viewers || 1;
-          if (stream.viewer_count < minViewers) {
-            console.log(`Skipping notification for ${stream.user_name} - below minimum viewers threshold (${stream.viewer_count} < ${minViewers})`);
-            continue;
+          if (notificationConfig.minimum_viewers && notificationConfig.minimum_viewers > 0) {
+            if (stream.viewer_count < notificationConfig.minimum_viewers) {
+              console.log(`Skipping notification for ${stream.user_name} - below minimum viewers threshold (${stream.viewer_count} < ${notificationConfig.minimum_viewers})`);
+              continue;
+            } else {
+              console.log(`✓ Minimum viewers requirement met for ${stream.user_name} (${stream.viewer_count} >= ${notificationConfig.minimum_viewers})`);
+            }
+          } else {
+            console.log(`No minimum viewers requirement configured for ${stream.user_name} - proceeding`);
           }
 
           // Check language requirement

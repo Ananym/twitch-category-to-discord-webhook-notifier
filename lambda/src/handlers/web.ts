@@ -201,7 +201,7 @@ async function getNotificationsByWebhook(
           : "";
 
       const viewersInfo =
-        config.minimum_viewers && config.minimum_viewers > 1
+        config.minimum_viewers && config.minimum_viewers > 0
           ? `<i data-lucide="users"></i> Min viewers: ${config.minimum_viewers}`
           : "";
 
@@ -618,7 +618,7 @@ async function createNotification(
     game_name: gameName,
     required_tags: requiredTags.length > 0 ? requiredTags : undefined,
     required_language: requiredLanguage,
-    minimum_viewers: minimumViewers > 1 ? minimumViewers : undefined,
+    minimum_viewers: minimumViewers > 0 ? minimumViewers : undefined,
     created_at: new Date().toISOString(),
     failure_count: 0,
     updated_at: new Date().toISOString(),
@@ -818,7 +818,7 @@ async function updateNotification(
     ...existingConfig,
     required_tags: requiredTags.length > 0 ? requiredTags : undefined,
     required_language: requiredLanguage,
-    minimum_viewers: minimumViewers > 1 ? minimumViewers : undefined,
+    minimum_viewers: minimumViewers > 0 ? minimumViewers : undefined,
     updated_at: new Date().toISOString(),
   };
 
@@ -904,7 +904,7 @@ async function getEditForm(
 
     const tagsValue = config.required_tags?.join(", ") || "";
     const languageValue = config.required_language || "";
-    const viewersValue = config.minimum_viewers || 1;
+    const viewersValue = config.minimum_viewers || 0;
 
     // Generate language options with selected value
     const languageOptions = [
