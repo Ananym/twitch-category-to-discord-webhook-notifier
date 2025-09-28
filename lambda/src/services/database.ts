@@ -171,6 +171,102 @@ export class DatabaseService {
     }));
   }
 
+  async incrementNotificationCounter(type: 'success' | 'failure'): Promise<void> {
+    const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
+    const pk = 'counter';
+    const sk = `${type}#${today}`;
+
+    try {
+      // Try to get existing counter
+      const result = await dynamodb.send(new QueryCommand({
+        TableName: config.tables.notificationConfigs,
+        KeyConditionExpression: 'pk = :pk AND sk = :sk',
+        ExpressionAttributeValues: {
+          ':pk': pk,
+          ':sk': sk,
+        },
+      }));
+
+      const currentCount = result.Items?.[0]?.count || 0;
+      const newCount = currentCount + 1;
+
+      await dynamodb.send(new PutCommand({
+        TableName: config.tables.notificationConfigs,
+        Item: {
+          pk,
+          sk,
+          count: newCount,
+          updated_at: new Date().toISOString(),
+          // TTL: expire after 30 days
+          ttl: Math.floor(Date.now() / 1000) + (30 * 24 * 60 * 60),
+        },
+      }));
+    } catch (error) {
+      console.error(`Failed to increment ${type} counter:`, error);
+    }
+  }
+
+  async getNotificationCounts24h(): Promise<{ sent: number; failed: number }> {
+    const now = new Date();
+    const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+
+    // Get dates to check (today and yesterday to cover 24h window)
+    const dates = [
+      now.toISOString().split('T')[0],
+      yesterday.toISOString().split('T')[0]
+    ];
+
+    let sent = 0;
+    let failed = 0;
+
+    for (const date of dates) {
+      try {
+        const [successResult, failureResult] = await Promise.all([
+          dynamodb.send(new QueryCommand({
+            TableName: config.tables.notificationConfigs,
+            KeyConditionExpression: 'pk = :pk AND sk = :sk',
+            ExpressionAttributeValues: {
+              ':pk': 'counter',
+              ':sk': `success#${date}`,
+            },
+          })),
+          dynamodb.send(new QueryCommand({
+            TableName: config.tables.notificationConfigs,
+            KeyConditionExpression: 'pk = :pk AND sk = :sk',
+            ExpressionAttributeValues: {
+              ':pk': 'counter',
+              ':sk': `failure#${date}`,
+            },
+          })),
+        ]);
+
+        const successCount = successResult.Items?.[0]?.count || 0;
+        const failureCount = failureResult.Items?.[0]?.count || 0;
+
+        // For today, use full count. For yesterday, only count if we're within 24h of when it was created
+        if (date === now.toISOString().split('T')[0]) {
+          sent += successCount;
+          failed += failureCount;
+        } else {
+          // For yesterday's date, we need to check if the counter was updated within last 24h
+          const successUpdated = successResult.Items?.[0]?.updated_at;
+          const failureUpdated = failureResult.Items?.[0]?.updated_at;
+
+          if (successUpdated && new Date(successUpdated) > yesterday) {
+            sent += successCount;
+          }
+          if (failureUpdated && new Date(failureUpdated) > yesterday) {
+            failed += failureCount;
+          }
+        }
+      } catch (error) {
+        console.error(`Error getting counts for ${date}:`, error);
+      }
+    }
+
+    return { sent, failed };
+  }
+
   async getStatusData(key: string): Promise<string | null> {
     const result = await dynamodb.send(new QueryCommand({
       TableName: config.tables.notificationConfigs,

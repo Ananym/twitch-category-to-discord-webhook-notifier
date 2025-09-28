@@ -113,12 +113,18 @@ export async function scheduledHandler(event: ScheduledEvent): Promise<void> {
           for (const notificationConfig of eligibleConfigs) {
             try {
               await discord.sendNotification(notificationConfig.webhook_url, stream);
-              await db.updateNotificationSuccess(notificationConfig.pk, notificationConfig.sk);
+              await Promise.all([
+                db.updateNotificationSuccess(notificationConfig.pk, notificationConfig.sk),
+                db.incrementNotificationCounter('success')
+              ]);
               notificationsSent++;
               console.log(`✓ Notification sent successfully for ${stream.user_name} to webhook ${notificationConfig.pk}/${notificationConfig.sk} - updating last_success timestamp`);
             } catch (error) {
               console.error(`✗ Failed to send notification for ${stream.user_name}:`, error);
-              await db.updateNotificationFailure(notificationConfig.pk, notificationConfig.sk);
+              await Promise.all([
+                db.updateNotificationFailure(notificationConfig.pk, notificationConfig.sk),
+                db.incrementNotificationCounter('failure')
+              ]);
               notificationsFailed++;
             }
           }
