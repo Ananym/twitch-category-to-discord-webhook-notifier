@@ -17,9 +17,6 @@
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
   </head>
   <body>
-    <base
-      href="https://3vnuov7klmki7q5faqknhh7jem0corgn.lambda-url.eu-west-2.on.aws/"
-    />
     <div class="container">
       <header>
         <div class="header-content">
@@ -101,6 +98,11 @@
       document.addEventListener("DOMContentLoaded", function () {
         // Allow cross-domain requests
         htmx.config.selfRequestsOnly = false;
+      });
+
+      // Configure base URL for all HTMX requests
+      document.body.addEventListener('htmx:configRequest', (event) => {
+        event.detail.path = `${API_BASE_URL}${event.detail.path}`;
       });
 
       // Discord webhook validation

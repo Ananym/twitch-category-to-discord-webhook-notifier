@@ -277,7 +277,7 @@ async function getNotificationsByWebhook(
 
             <div class="form-fields">
               <div class="field-group">
-                <label>Category: <span class="required">*</span></label>
+                <label>Category:</label>
                 <select name="category" class="category-search" required>
                   <option value="">Search and select a game...</option>
                 </select>
