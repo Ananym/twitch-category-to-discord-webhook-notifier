@@ -12,12 +12,14 @@
       href="https://unpkg.com/choices.js@10.2.0/public/assets/styles/choices.min.css"
     />
     <link rel="stylesheet" href="style.css" />
-    <link rel="icon" type="image/x-icon" href="favicon.ico" />
-    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png" />
-    <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png" />
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
   </head>
   <body>
-    <base href="https://3vnuov7klmki7q5faqknhh7jem0corgn.lambda-url.eu-west-2.on.aws/" />
+    <base
+      href="https://3vnuov7klmki7q5faqknhh7jem0corgn.lambda-url.eu-west-2.on.aws/"
+    />
     <div class="container">
       <header>
         <div class="header-content">
@@ -96,14 +98,15 @@
         "https://3vnuov7klmki7q5faqknhh7jem0corgn.lambda-url.eu-west-2.on.aws";
 
       // Configure HTMX for cross-domain requests
-      document.addEventListener('DOMContentLoaded', function() {
+      document.addEventListener("DOMContentLoaded", function () {
         // Allow cross-domain requests
         htmx.config.selfRequestsOnly = false;
       });
 
       // Discord webhook validation
       function isValidDiscordWebhook(url) {
-        const discordWebhookRegex = /^https:\/\/discord\.com\/api\/webhooks\/\d+\/[\w-]+$/;
+        const discordWebhookRegex =
+          /^https:\/\/discord\.com\/api\/webhooks\/\d+\/[\w-]+$/;
         return discordWebhookRegex.test(url);
       }
 
