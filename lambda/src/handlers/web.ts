@@ -1320,11 +1320,7 @@ async function getStatus(
       <div class="status-line">
         ${statusInfo.notification_configs_count} configs |
         ${statusInfo.notifications_sent_24h} sent (24h) |
-        ${
-          statusInfo.failed_notifications_24h > 0
-            ? `<span class="status-error">${statusInfo.failed_notifications_24h} failed (24h)</span>`
-            : "0 failed (24h)"
-        } |
+        ${statusInfo.failed_notifications_24h} failed (24h) |
         Last poll: ${statusInfo.time_since_last_poll}${
       statusInfo.twitch_api_error
         ? ` | <span class="status-error">API Error</span>`

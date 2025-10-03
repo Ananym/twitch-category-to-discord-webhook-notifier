@@ -27,8 +27,9 @@ export class TwitchNotifierStack extends cdk.Stack {
       projectionType: dynamodb.ProjectionType.ALL,
     });
 
-    const discoveredStreamsTable = new dynamodb.Table(this, 'DiscoveredStreams', {
+    const discoveredStreamsTable = new dynamodb.Table(this, 'DiscoveredStreamsV2', {
       partitionKey: { name: 'stream_id', type: dynamodb.AttributeType.STRING },
+      sortKey: { name: 'config_key', type: dynamodb.AttributeType.STRING },
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
       timeToLiveAttribute: 'ttl',
       removalPolicy: cdk.RemovalPolicy.DESTROY,
@@ -67,6 +68,9 @@ export class TwitchNotifierStack extends cdk.Stack {
 
     notificationConfigsTable.grantReadWriteData(twitchNotifierLambda);
     discoveredStreamsTable.grantReadWriteData(twitchNotifierLambda);
+
+    // Ensure new table is fully created before Lambda is updated
+    twitchNotifierLambda.node.addDependency(discoveredStreamsTable);
 
 
 

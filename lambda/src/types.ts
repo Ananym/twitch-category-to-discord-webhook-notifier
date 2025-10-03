@@ -14,7 +14,8 @@ export interface NotificationConfig {
 }
 
 export interface DiscoveredStream {
-  stream_id: string;
+  stream_id: string;        // Partition key
+  config_key: string;       // Sort key: unique identifier for the notification config
   user_id: string;
   game_id: string;
   discovered_at: string;

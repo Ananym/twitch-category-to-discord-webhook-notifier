@@ -32,6 +32,15 @@ export class DatabaseService {
       });
     }
 
+    // Sort by created_at (oldest first), then alphabetically by game_name
+    items.sort((a, b) => {
+      if (!a.created_at) return 1;
+      if (!b.created_at) return -1;
+      const dateCompare = a.created_at.localeCompare(b.created_at);
+      if (dateCompare !== 0) return dateCompare;
+      return (a.game_name || '').localeCompare(b.game_name || '');
+    });
+
     return items;
   }
 
@@ -91,12 +100,13 @@ export class DatabaseService {
     }));
   }
 
-  async isStreamDiscovered(streamId: string): Promise<boolean> {
+  async isStreamNotifiedForConfig(streamId: string, configKey: string): Promise<boolean> {
     const result = await dynamodb.send(new QueryCommand({
       TableName: config.tables.discoveredStreams,
-      KeyConditionExpression: 'stream_id = :stream_id',
+      KeyConditionExpression: 'stream_id = :stream_id AND config_key = :config_key',
       ExpressionAttributeValues: {
         ':stream_id': streamId,
+        ':config_key': configKey,
       },
     }));
 

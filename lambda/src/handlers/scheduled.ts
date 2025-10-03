@@ -47,108 +47,116 @@ export async function scheduledHandler(event: ScheduledEvent): Promise<void> {
     let notificationsFailed = 0;
 
     for (const stream of streams) {
-      const isDiscovered = await db.isStreamDiscovered(stream.id);
+      console.log(`Processing stream: ${stream.user_name} playing ${stream.game_name} (${stream.viewer_count} viewers)`);
 
-      if (!isDiscovered) {
-        console.log(`New stream discovered: ${stream.user_name} playing ${stream.game_name} (${stream.viewer_count} viewers)`);
+      const configs = await db.getNotificationConfigsByGameId(stream.game_id);
+      console.log(`Checking ${configs.length} notification configs for ${stream.game_name}`);
 
-        const configs = await db.getNotificationConfigsByGameId(stream.game_id);
-        console.log(`Checking ${configs.length} notification configs for ${stream.game_name}`);
+      for (const notificationConfig of configs) {
+        const configKey = `${notificationConfig.pk}#${notificationConfig.sk}`;
+        const isNotified = await db.isStreamNotifiedForConfig(stream.id, configKey);
 
-        let shouldSendNotifications = false;
-        const eligibleConfigs = [];
-
-        for (const notificationConfig of configs) {
-          console.log(`Evaluating config for ${stream.user_name}:`, {
-            pk: notificationConfig.pk,
-            sk: notificationConfig.sk,
-            required_tags: notificationConfig.required_tags,
-            required_language: notificationConfig.required_language,
-            minimum_viewers: notificationConfig.minimum_viewers,
-            stream_tags: stream.tags,
-            stream_language: stream.language,
-            stream_viewer_count: stream.viewer_count
-          });
-
-          // Check minimum viewers threshold
-          if (notificationConfig.minimum_viewers && notificationConfig.minimum_viewers > 0) {
-            if (stream.viewer_count < notificationConfig.minimum_viewers) {
-              console.log(`Skipping notification for ${stream.user_name} - below minimum viewers threshold (${stream.viewer_count} < ${notificationConfig.minimum_viewers})`);
-              continue;
-            } else {
-              console.log(`✓ Minimum viewers requirement met for ${stream.user_name} (${stream.viewer_count} >= ${notificationConfig.minimum_viewers})`);
-            }
-          } else {
-            console.log(`No minimum viewers requirement configured for ${stream.user_name} - proceeding`);
-          }
-
-          // Check language requirement
-          if (notificationConfig.required_language && notificationConfig.required_language.trim() !== "") {
-            if (stream.language.toLowerCase() !== notificationConfig.required_language.toLowerCase()) {
-              console.log(`Skipping notification for ${stream.user_name} - language mismatch (stream: ${stream.language}, required: ${notificationConfig.required_language})`);
-              continue;
-            } else {
-              console.log(`✓ Language requirement met for ${stream.user_name} (${stream.language})`);
-            }
-          } else {
-            console.log(`No language requirement configured for ${stream.user_name} - proceeding`);
-          }
-
-          // Check if stream matches required tags
-          if (notificationConfig.required_tags && notificationConfig.required_tags.length > 0) {
-            console.log(`Checking required tags for ${stream.user_name}: required=[${notificationConfig.required_tags.join(', ')}], stream=[${stream.tags.join(', ')}]`);
-
-            const hasAllRequiredTags = notificationConfig.required_tags.every(requiredTag =>
-              stream.tags.some(streamTag => streamTag.toLowerCase() === requiredTag.toLowerCase())
-            );
-
-            if (!hasAllRequiredTags) {
-              console.log(`Skipping notification for ${stream.user_name} - missing required tags: ${notificationConfig.required_tags.join(', ')}`);
-              continue;
-            } else {
-              console.log(`✓ All required tags found for ${stream.user_name}`);
-            }
-          } else {
-            console.log(`No required tags configured for ${stream.user_name} - proceeding`);
-          }
-
-          eligibleConfigs.push(notificationConfig);
-          shouldSendNotifications = true;
+        if (isNotified) {
+          console.log(`Stream ${stream.user_name} already notified for config ${configKey} - skipping`);
+          continue;
         }
 
-        // Only save as discovered if at least one config meets the criteria
-        if (shouldSendNotifications) {
+        console.log(`Evaluating config ${configKey} for ${stream.user_name}:`, {
+          pk: notificationConfig.pk,
+          sk: notificationConfig.sk,
+          required_tags: notificationConfig.required_tags,
+          required_language: notificationConfig.required_language,
+          minimum_viewers: notificationConfig.minimum_viewers,
+          stream_tags: stream.tags,
+          stream_language: stream.language,
+          stream_viewer_count: stream.viewer_count
+        });
+
+        // Skip streams that started before this config was created
+        if (notificationConfig.created_at && stream.started_at) {
+          const configCreated = new Date(notificationConfig.created_at);
+          const streamStarted = new Date(stream.started_at);
+
+          if (streamStarted < configCreated) {
+            console.log(`Skipping notification for ${stream.user_name} - stream started before config was created (stream: ${stream.started_at}, config: ${notificationConfig.created_at})`);
+            continue;
+          } else {
+            console.log(`✓ Stream started after config creation (stream: ${stream.started_at}, config: ${notificationConfig.created_at})`);
+          }
+        }
+
+        // Check minimum viewers threshold
+        if (notificationConfig.minimum_viewers && notificationConfig.minimum_viewers > 0) {
+          if (stream.viewer_count < notificationConfig.minimum_viewers) {
+            console.log(`Skipping notification for ${stream.user_name} - below minimum viewers threshold (${stream.viewer_count} < ${notificationConfig.minimum_viewers})`);
+            continue;
+          } else {
+            console.log(`✓ Minimum viewers requirement met for ${stream.user_name} (${stream.viewer_count} >= ${notificationConfig.minimum_viewers})`);
+          }
+        } else {
+          console.log(`No minimum viewers requirement configured for ${stream.user_name} - proceeding`);
+        }
+
+        // Check language requirement
+        if (notificationConfig.required_language && notificationConfig.required_language.trim() !== "") {
+          if (stream.language.toLowerCase() !== notificationConfig.required_language.toLowerCase()) {
+            console.log(`Skipping notification for ${stream.user_name} - language mismatch (stream: ${stream.language}, required: ${notificationConfig.required_language})`);
+            continue;
+          } else {
+            console.log(`✓ Language requirement met for ${stream.user_name} (${stream.language})`);
+          }
+        } else {
+          console.log(`No language requirement configured for ${stream.user_name} - proceeding`);
+        }
+
+        // Check if stream matches required tags
+        if (notificationConfig.required_tags && notificationConfig.required_tags.length > 0) {
+          console.log(`Checking required tags for ${stream.user_name}: required=[${notificationConfig.required_tags.join(', ')}], stream=[${stream.tags.join(', ')}]`);
+
+          const hasAllRequiredTags = notificationConfig.required_tags.every(requiredTag =>
+            stream.tags.some(streamTag => streamTag.toLowerCase() === requiredTag.toLowerCase())
+          );
+
+          if (!hasAllRequiredTags) {
+            console.log(`Skipping notification for ${stream.user_name} - missing required tags: ${notificationConfig.required_tags.join(', ')}`);
+            continue;
+          } else {
+            console.log(`✓ All required tags found for ${stream.user_name}`);
+          }
+        } else {
+          console.log(`No required tags configured for ${stream.user_name} - proceeding`);
+        }
+
+        // Config passed all criteria - send notification and mark as notified
+        try {
+          await discord.sendNotification(notificationConfig.webhook_url, stream);
+
+          // Save as discovered for this specific config
           const discoveredStream: DiscoveredStream = {
             stream_id: stream.id,
+            config_key: configKey,
             user_id: stream.user_id,
             game_id: stream.game_id,
             discovered_at: new Date().toISOString(),
             ttl: Math.floor(Date.now() / 1000) + (config.cleanup.streamTtlDays * 24 * 60 * 60),
           };
 
-          await db.saveDiscoveredStream(discoveredStream);
-          newStreamsCount++;
+          await Promise.all([
+            db.saveDiscoveredStream(discoveredStream),
+            db.updateNotificationSuccess(notificationConfig.pk, notificationConfig.sk),
+            db.incrementNotificationCounter('success')
+          ]);
 
-          for (const notificationConfig of eligibleConfigs) {
-            try {
-              await discord.sendNotification(notificationConfig.webhook_url, stream);
-              await Promise.all([
-                db.updateNotificationSuccess(notificationConfig.pk, notificationConfig.sk),
-                db.incrementNotificationCounter('success')
-              ]);
-              notificationsSent++;
-              console.log(`✓ Notification sent successfully for ${stream.user_name} to webhook ${notificationConfig.pk}/${notificationConfig.sk} - updating last_success timestamp`);
-            } catch (error) {
-              console.error(`✗ Failed to send notification for ${stream.user_name}:`, error);
-              await Promise.all([
-                db.updateNotificationFailure(notificationConfig.pk, notificationConfig.sk),
-                db.incrementNotificationCounter('failure')
-              ]);
-              notificationsFailed++;
-            }
-          }
-        } else {
-          console.log(`Stream ${stream.user_name} doesn't meet any notification criteria - not saving as discovered`);
+          newStreamsCount++;
+          notificationsSent++;
+          console.log(`✓ Notification sent successfully for ${stream.user_name} to config ${configKey}`);
+        } catch (error) {
+          console.error(`✗ Failed to send notification for ${stream.user_name} to config ${configKey}:`, error);
+          await Promise.all([
+            db.updateNotificationFailure(notificationConfig.pk, notificationConfig.sk),
+            db.incrementNotificationCounter('failure')
+          ]);
+          notificationsFailed++;
         }
       }
     }
